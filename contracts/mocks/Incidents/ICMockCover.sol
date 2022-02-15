@@ -5,8 +5,6 @@ pragma solidity ^0.8.0;
 import "../../interfaces/ICover.sol";
 import "../../interfaces/IERC721Mock.sol";
 
-import "hardhat/console.sol";
-
 contract ICMockCover {
 
   IERC721Mock public immutable coverNFT;
@@ -58,8 +56,8 @@ contract ICMockCover {
     uint8 payoutAsset,
     uint96 amount,
     uint32 period,
-    uint maxPrice,
-    ICover.PoolAllocationRequest[] memory stakingPools
+    uint /*maxPrice*/,
+    ICover.PoolAllocationRequest[] memory /*stakingPools*/
   ) external payable returns (uint coverId) {
     coverData.push(ICover.CoverData(
         productId,
@@ -82,7 +80,7 @@ contract ICMockCover {
     string calldata descriptionIpfsHash,
     uint8 redeemMethod,
     uint16 gracePeriodInDays,
-    uint16 burnRatio
+    uint16 /*burnRatio*/
   ) external {
     productTypes.push(ICover.ProductType(
       descriptionIpfsHash,
@@ -98,12 +96,11 @@ contract ICMockCover {
   function setActiveCoverAmountInNXM(
     uint productId,
     uint96 amount
-  ) external returns (uint96) {
+  ) external {
     activeCoverAmountInNXM[productId] = amount;
   }
 
-
-  function performPayoutBurn(uint coverId, uint amount) external returns (address) {
+  function performPayoutBurn(uint coverId, uint /*amount*/) external view returns (address) {
     return coverNFT.ownerOf(coverId);
   }
 }

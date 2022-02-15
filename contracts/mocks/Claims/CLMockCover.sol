@@ -70,8 +70,8 @@ contract CLMockCover {
     uint8 payoutAsset,
     uint96 amount,
     uint32 period,
-    uint maxPrice,
-    ICover.PoolAllocationRequest[] memory coverChunkRequests,
+    uint /*maxPrice*/,
+    ICover.PoolAllocationRequest[] memory /*coverChunkRequests*/,
     uint32 date
   ) external payable returns (uint coverId) {
     coverData.push(ICover.CoverData(
@@ -97,8 +97,8 @@ contract CLMockCover {
     uint8 payoutAsset,
     uint96 amount,
     uint32 period,
-    uint maxPrice,
-    ICover.PoolAllocationRequest[] memory coverChunkRequests
+    uint /*maxPrice*/,
+    ICover.PoolAllocationRequest[] memory /*coverChunkRequests*/
   ) external payable returns (uint coverId) {
 
     coverData.push(ICover.CoverData(
@@ -135,7 +135,7 @@ contract CLMockCover {
     string calldata descriptionIpfsHash,
     uint8 redeemMethod,
     uint16 gracePeriodInDays,
-    uint16 burnRatio
+    uint16 /*burnRatio*/
   ) external {
     productTypes.push(ICover.ProductType(
     descriptionIpfsHash,
@@ -159,6 +159,8 @@ contract CLMockCover {
     address toNewOwner
   ) external returns (address) {
     migrateCoverFromOwnerCalledWith = MigrateCoverFromOwnerCalledWith(coverId, fromOwner, toNewOwner);
+    // silence compiler warning:
+    return address(0);
   }
 
 }
