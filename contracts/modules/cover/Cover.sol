@@ -217,28 +217,31 @@ contract Cover is ICover, MasterAwareV2, IStakingPoolBeacon {
 
     // convert to NXM amount
     uint nxmPriceInPayoutAsset = pool().getTokenPrice(params.payoutAsset);
-    uint remainderAmountInNXM = 0;
-    uint totalCoverAmountInNXM = 0;
+    uint requestedCoverAmountInAsset = 0;
+    uint totalCoverAmountInAsset = 0;
 
     uint _coverSegmentsCount = _coverSegments[coverId].length;
 
     for (uint i = 0; i < allocationRequests.length; i++) {
 
-      uint requestedCoverAmountInNXM
-        = allocationRequests[i].coverAmountInAsset * 1e18 / nxmPriceInPayoutAsset + remainderAmountInNXM;
+      requestedCoverAmountInAsset += allocationRequests[i].coverAmountInAsset;
+      uint requestedCoverAmountInNxm = requestedCoverAmountInAsset * 1e18 / nxmPriceInPayoutAsset;
 
       (uint coveredAmountInNXM, uint premiumInNXM, uint rewardsInNXM) = allocateCapacity(
         params,
         coverId,
         stakingPool(allocationRequests[i].poolId),
-        requestedCoverAmountInNXM
+        requestedCoverAmountInNxm
       );
 
       // apply the global rewards ratio and the total Rewards in NXM
       tokenController().mintStakingPoolNXMRewards(rewardsInNXM, allocationRequests[i].poolId);
 
-      remainderAmountInNXM = requestedCoverAmountInNXM - coveredAmountInNXM;
-      totalCoverAmountInNXM += coveredAmountInNXM;
+      // prevents precision loss
+      uint coveredAmountInAsset = requestedCoverAmountInAsset * coveredAmountInNXM / requestedCoverAmountInNxm;
+
+      requestedCoverAmountInAsset -= coveredAmountInAsset;
+      totalCoverAmountInAsset += coveredAmountInAsset;
       totalPremiumInNXM += premiumInNXM;
 
       coverSegmentAllocations[coverId][_coverSegmentsCount].push(
@@ -254,12 +257,12 @@ contract Cover is ICover, MasterAwareV2, IStakingPoolBeacon {
     uint16 priceRatio = SafeUintCast.toUint16(
       divRound(
         totalPremiumInNXM * PRICE_DENOMINATOR * MAX_COVER_PERIOD / params.period,
-        totalCoverAmountInNXM
+        totalCoverAmountInAsset * 1e18 / nxmPriceInPayoutAsset
       )
     );
 
     _coverSegments[coverId].push(CoverSegment(
-        SafeUintCast.toUint96(totalCoverAmountInNXM * nxmPriceInPayoutAsset / 1e18), // amount
+        SafeUintCast.toUint96(totalCoverAmountInAsset), // amount
         uint32(block.timestamp + 1), // start
         SafeUintCast.toUint32(params.period), // period
         priceRatio,
