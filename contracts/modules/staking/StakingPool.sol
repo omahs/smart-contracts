@@ -142,7 +142,7 @@ contract StakingPool is IStakingPool, SolmateERC721 {
   }
 
   modifier onlyManager {
-    require(_isApprovedOrOwner(msg.sender, 0), "StakingPool: Only pool manager can call this function");
+    require(isApprovedOrOwner(msg.sender, 0), "StakingPool: Only pool manager can call this function");
     _;
   }
 
@@ -156,11 +156,6 @@ contract StakingPool is IStakingPool, SolmateERC721 {
     nxm = INXMToken(_token);
     coverContract = _coverContract;
     tokenController = _tokenController;
-  }
-
-  function _isApprovedOrOwner(address spender, uint tokenId) public view returns (bool) {
-    address owner = ownerOf(tokenId);
-    return spender == owner || isApprovedForAll[owner][spender] || spender == getApproved[tokenId];
   }
 
   function initialize(
@@ -189,6 +184,11 @@ contract StakingPool is IStakingPool, SolmateERC721 {
     // create ownership nft
     totalSupply = 1;
     _mint(_manager, 0);
+  }
+
+  function isApprovedOrOwner(address spender, uint tokenId) public view returns (bool) {
+    address owner = ownerOf(tokenId);
+    return spender == owner || isApprovedForAll[owner][spender] || spender == getApproved[tokenId];
   }
 
   function tokenURI(uint256 id) public pure override returns (string memory) {
