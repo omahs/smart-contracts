@@ -300,7 +300,8 @@ describe('do enzyme investment', function () {
     const asset = enzymeV4VaultProxyAddress;
     const min = ether('15000');
     const max = ether('16000');
-    const maxSlippageRatio = ether('0'); // 2.5%
+    // const maxSlippageRatio = ether('0.0000003'); //  1% per anum for 15 minutes
+    const maxSlippageRatio = ether('0.00001'); //  1% per anum for 250 minutes
     const parameters = [
       ['address', asset],
       ['uint112', min],
@@ -343,7 +344,7 @@ describe('do enzyme investment', function () {
       Address.stETH,
       enzymeV4VaultProxyAddress,
       enzymeFundValueCalulatorRouter,
-      Address.WETH
+      Address.WETH,
     );
 
     const parameters = [
@@ -432,11 +433,23 @@ describe('do enzyme investment', function () {
 
     const balanceBefore = await enzymeSharesToken.balanceOf(pool.address);
 
+    {
+      const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
+      const { netShareValue_ } = await fundValueCalculatorRouter.calcNetShareValue.call(enzymeV4VaultProxyAddress);
+      console.log({ netShareValueBefore: netShareValue_.toString() });
+    }
+
     const amountIn = ether('200');
     const amountOutMin = amountIn;
     await swapOperator.swapETHForEnzymeVaultShare(amountIn, amountOutMin, {
       from: swapController,
     });
+
+    {
+      const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
+      const { netShareValue_ } = await fundValueCalculatorRouter.calcNetShareValue.call(enzymeV4VaultProxyAddress);
+      console.log({ netShareValueAfter: netShareValue_.toString() });
+    }
 
     const balanceAfter = await enzymeSharesToken.balanceOf(pool.address);
     const poolValueInEthAfter = await pool.getPoolValueInEth();
@@ -464,20 +477,36 @@ describe('do enzyme investment', function () {
     const details = await pool.getAssetDetails(enzymeV4VaultProxyAddress);
     console.log({ slippage: details.maxSlippageRatio.toString() });
 
-    // const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
-    // const { netShareValue_ } = await fundValueCalculatorRouter.callStatic.calcNetShareValue(enzymeV4VaultProxyAddress);
-    // console.log({ netShareValue_: netShareValue_.toString() });
+    const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
+    const { netShareValue_ } = await fundValueCalculatorRouter.calcNetShareValue.call(enzymeV4VaultProxyAddress);
+    console.log({ netShareValueBefore: netShareValue_.toString() });
 
     const amountIn = ether('15000');
-    const amountOutMin = ether('15000');
-    await swapOperator.swapETHForEnzymeVaultShare(amountIn, amountOutMin, {
-      from: swapController,
+    const amountOut = ether('15000').mul(netShareValue_).div(ether('1'));
+
+    const maxSlippageRatio = ether('0.0000003'); //  1% per anum for 15 minutes
+    const maxSlippage = amountOut.mul(maxSlippageRatio).div(ether('1'));
+    const amountOutOnMaxSlippage = amountOut.sub(maxSlippage);
+
+    console.log({
+      maxSlippageRatio: maxSlippageRatio.toString(),
+      maxSlippage: maxSlippage.toString(),
+      amountOut: amountOut.toString(),
+      amountOutOnMaxSlippage: amountOutOnMaxSlippage.toString(),
     });
+
+    await swapOperator.swapETHForEnzymeVaultShare(amountIn, amountOutOnMaxSlippage, { from: swapController });
 
     const balanceAfter = await enzymeSharesToken.balanceOf(pool.address);
     const poolValueInEthAfter = await pool.getPoolValueInEth();
 
     const poolValueDelta = poolValueInEthBefore.sub(poolValueInEthAfter);
+
+    {
+      const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
+      const { netShareValue_ } = await fundValueCalculatorRouter.calcNetShareValue.call(enzymeV4VaultProxyAddress);
+      console.log({ netShareValueAfter: netShareValue_.toString() });
+    }
 
     console.log({
       balanceBefore: balanceBefore.toString(),
