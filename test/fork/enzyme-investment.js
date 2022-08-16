@@ -388,7 +388,7 @@ describe('do enzyme investment', function () {
     this.enzymeSharesToken = enzymeSharesToken;
   });
 
-  it.skip('Enables SwapOperator as depositor', async function () {
+  it('Enables SwapOperator as depositor', async function () {
 
     const { swapOperator, pool } = this;
 
