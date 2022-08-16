@@ -29,7 +29,7 @@ async function submitGovernanceProposal (categoryId, actionData, members, gv) {
   await gv.categorizeProposal(id, categoryId, 0, { from });
   await gv.submitProposalWithSolution(id, '', actionData, { from });
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < members.length; i++) {
     await gv.submitVote(id, 1, { from: members[i] });
   }
 

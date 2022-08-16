@@ -236,7 +236,7 @@ describe('do enzyme investment', function () {
     );
   });
 
-  it('upgrade PriceFeedOracle', async function () {
+  it.skip('upgrade PriceFeedOracle', async function () {
 
     const { voters, governance } = this;
 
@@ -263,7 +263,7 @@ describe('do enzyme investment', function () {
     this.priceFeedOracle = priceFeedOracle;
   });
 
-  it('add Pool addAsset category', async function () {
+  it.skip('add Pool addAsset category', async function () {
     const { governance, voters, proposalCategory, pool } = this;
 
     const parameters = [
@@ -294,12 +294,13 @@ describe('do enzyme investment', function () {
 
   it('add new enzyme shares asset', async function () {
 
-    const { pool, voters, governance, addAssetCategory } = this;
+    const { pool, voters, governance } = this;
+    const addAssetCategory = '42';
 
     const asset = enzymeV4VaultProxyAddress;
     const min = ether('15000');
     const max = ether('16000');
-    const maxSlippageRatio = ether('0.025'); // 2.5%
+    const maxSlippageRatio = ether('0'); // 2.5%
     const parameters = [
       ['address', asset],
       ['uint112', min],
@@ -460,8 +461,15 @@ describe('do enzyme investment', function () {
 
     await time.increase(11 * 60 * 60); // increase by 11 minutes
 
+    const details = await pool.getAssetDetails(enzymeV4VaultProxyAddress);
+    console.log({ slippage: details.maxSlippageRatio.toString() });
+
+    // const fundValueCalculatorRouter = await IEnzymeFundValueCalculatorRouter.at(enzymeFundValueCalulatorRouter);
+    // const { netShareValue_ } = await fundValueCalculatorRouter.callStatic.calcNetShareValue(enzymeV4VaultProxyAddress);
+    // console.log({ netShareValue_: netShareValue_.toString() });
+
     const amountIn = ether('15000');
-    const amountOutMin = amountIn.add(ether('0.00000001'));
+    const amountOutMin = ether('15000');
     await swapOperator.swapETHForEnzymeVaultShare(amountIn, amountOutMin, {
       from: swapController,
     });
