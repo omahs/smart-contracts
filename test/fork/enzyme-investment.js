@@ -292,7 +292,7 @@ describe('do enzyme investment', function () {
     await submitGovernanceProposal(ProposalCategory.addCategory, addCategory, voters, governance);
   });
 
-  it('add new enzyme shares asset', async function () {
+  it.skip('add new enzyme shares asset', async function () {
 
     const { pool, voters, governance } = this;
     const addAssetCategory = '42';
@@ -324,7 +324,7 @@ describe('do enzyme investment', function () {
     });
   });
 
-  it('upgrade contracts', async function () {
+  it.skip('upgrade contracts', async function () {
     const { master, oldSwapOperator, pool, voters, governance } = this;
 
     console.log('Deploying contracts');
@@ -372,7 +372,23 @@ describe('do enzyme investment', function () {
     this.enzymeSharesToken = enzymeSharesToken;
   });
 
-  it('Enables SwapOperator as depositor', async function () {
+  it('init swap contracts', async function () {
+
+    const enzymeSharesToken = await ERC20.at(enzymeV4VaultProxyAddress);
+
+    const storedSwapAddress = await this.pool.swapOperator();
+    const swapOperator = await SwapOperator.at(storedSwapAddress);
+
+    const swapController = await swapOperator.swapController();
+    await fund(swapController);
+    await unlock(swapController);
+
+    this.swapOperator = swapOperator;
+    this.swapController = swapController;
+    this.enzymeSharesToken = enzymeSharesToken;
+  });
+
+  it.skip('Enables SwapOperator as depositor', async function () {
 
     const { swapOperator, pool } = this;
 
